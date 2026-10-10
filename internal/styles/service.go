@@ -152,6 +152,39 @@ func (s *Service) CancelImport(token string) error {
 	return nil
 }
 
+// Delete removes a style added to the app. Built-in styles are not stored here.
+func (s *Service) Delete(id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !oneDirectoryName(id) || id == incomingDir {
+		return s.deleteFailed(os.ErrInvalid)
+	}
+	src := filepath.Join(s.dir, id)
+	if info, err := os.Stat(src); err != nil || !info.IsDir() {
+		return s.deleteFailed(os.ErrNotExist)
+	}
+	token, err := newToken()
+	if err != nil {
+		return s.deleteFailed(err)
+	}
+	trash := filepath.Join(s.dir, incomingDir, token)
+	if err := os.MkdirAll(filepath.Dir(trash), 0o755); err != nil {
+		return s.deleteFailed(err)
+	}
+	if err := os.Rename(src, trash); err != nil {
+		return s.deleteFailed(err)
+	}
+	if err := os.RemoveAll(trash); err != nil {
+		s.logger.Warn("style_delete_leftover", "cause", err)
+	}
+	return nil
+}
+
+func (s *Service) deleteFailed(err error) error {
+	s.logger.Error("style_delete_failed", "cause", err)
+	return fault.New("DELETE", "Could not delete the style.")
+}
+
 // List reads the styles kept in the app.
 func (s *Service) List() ([]StoredStyle, error) {
 	s.mu.Lock()
