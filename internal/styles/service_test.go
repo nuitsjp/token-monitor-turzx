@@ -183,3 +183,48 @@ func TestCopyFailureRemovesThePartialCopy(t *testing.T) {
 		t.Fatalf("existing definition changed: %+v", list)
 	}
 }
+
+func TestDeleteRemovesOnlyTheStoredStyleAndAllowsAddingItAgain(t *testing.T) {
+	root := t.TempDir()
+	store := filepath.Join(root, "styles")
+	writeStyle(t, filepath.Join(store, "night"), "night", "Night")
+	writeStyle(t, filepath.Join(store, "dawn"), "dawn", "Dawn")
+	source := filepath.Join(root, "source")
+	writeStyle(t, source, "night", "Night")
+	service := testService(t, store)
+	if err := service.Delete("night"); err != nil {
+		t.Fatal(err)
+	}
+	list, err := service.List()
+	if err != nil || len(list) != 1 || list[0].ID != "dawn" {
+		t.Fatalf("list %v %v", list, err)
+	}
+	if _, err := os.Stat(filepath.Join(source, "theme.json")); err != nil {
+		t.Fatal(err)
+	}
+	if left, _ := os.ReadDir(filepath.Join(store, incomingDir)); len(left) != 0 {
+		t.Fatalf("left %v", left)
+	}
+	draft, err := service.BeginImport(source, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := service.FinishImport(draft.Token); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDeleteFailsWithoutChangingTheDefinitions(t *testing.T) {
+	store := filepath.Join(t.TempDir(), "styles")
+	writeStyle(t, filepath.Join(store, "night"), "night", "Night")
+	service := testService(t, store)
+	for _, id := range []string{"gauges", "bars", "missing", "", "..", "../night", incomingDir} {
+		got := public(t, service.Delete(id))
+		if got.Code != "DELETE" || got.Message != "Could not delete the style." {
+			t.Fatalf("%q: %v", id, got)
+		}
+	}
+	if list, err := service.List(); err != nil || len(list) != 1 {
+		t.Fatalf("list %v %v", list, err)
+	}
+}
