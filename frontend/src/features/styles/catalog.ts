@@ -41,6 +41,10 @@ async function registerStored(value: ThemeFiles) {
   return { id: prepared.id, name: prepared.name };
 }
 
+export async function deleteStyle(id: string): Promise<void> {
+  await Styles.Delete(id);
+}
+
 export async function loadStyleCatalog(): Promise<StyleDefinition[]> {
   const compiled = compiledStyles();
   const stored = (await Styles.List()) ?? [];

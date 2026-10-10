@@ -4,6 +4,7 @@ import { Badge, Card, Group, Image, Stack, Text } from '@mantine/core';
 import { renderStylePreview, subscribeThemeData } from '../../features/display/theme-renderer';
 import { getSettings } from '../../features/settings/queries';
 import { loadStyleCatalog, type StyleDefinition } from '../../features/styles/catalog';
+import { DeleteStyle } from '../delete-style/DeleteStyle';
 import { ErrorNotice } from '../../shared/ErrorNotice';
 
 const builtins = [
@@ -55,10 +56,13 @@ export function StyleList() {
   return <Stack gap="md">
     <ErrorNotice error={catalog.error ?? settings.error} />
     {cards.map(card => <Card key={card.id} component="article" aria-label={card.name} withBorder padding="md">
-      <Group gap="sm" mb="sm">
+      <Group gap="sm" mb="sm" justify="space-between">
+        <Group gap="sm">
         <Text fw={700}>{card.name}</Text>
         {card.builtin && <Badge variant="light" color="gray" tt="none">Built-in</Badge>}
         {card.name === inUse && <Badge variant="light" tt="none">In use</Badge>}
+        </Group>
+        {!card.builtin && <DeleteStyle style={card} />}
       </Group>
       {images[card.id]
         ? <Image src={images[card.id]} alt={`${card.name} preview`} radius="sm" style={{ aspectRatio: '1920 / 462' }} />
