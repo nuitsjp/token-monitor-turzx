@@ -16,6 +16,7 @@
 | プレビュー区画 | ウィンドウで最新の表示画像を表示する。画像を描かず、状態も持たない | `frontend/src/usecases/show-usage/UsagePreview.tsx`、`frontend/src/features/display/queries.ts` |
 | スタイル一覧 | ビルドに含まれるテーマ定義と、アプリ内部に取り込んだ表示スタイルを列挙する。組み込みの Gauges と Bars は常に先に出し、各スタイルで描いたプレビューを見せる。TURZX へ送る画像と、現在の表示に使っているスタイルは変えない | `frontend/src/features/styles/catalog.ts`、`frontend/src/usecases/browse-styles/StyleList.tsx`、`frontend/src/routes/styles.tsx`、`frontend/src/app/Shell.tsx`、`frontend/src/features/display/theme-renderer.ts`、`internal/styles/service.go` |
 | スタイルの取り込み | 指定フォルダーを検査し、合格したファイルだけをアプリ内部の定義置き場へコピーして定義に加える。取消、不合格、識別子の重複、コピー失敗では定義も内部のファイルも変えない | `internal/styles/service.go`、`internal/desktop/service.go`、`frontend/src/usecases/add-style/AddStyle.tsx`、`frontend/src/features/styles/catalog.ts`、`frontend/src/features/styles/prepare.ts` |
+| スタイルの削除 | 追加したスタイルの内部コピーを、`styles` 下の一時名へ移してから削除し、定義から取り除く。組み込みは削除できない。取消と失敗では定義も内部のファイルも変えない。TURZX へ送る画像と、現在の表示に使っているスタイルは変えない | `internal/styles/service.go`、`internal/desktop/service.go`、`frontend/src/usecases/delete-style/DeleteStyle.tsx`、`frontend/src/features/styles/catalog.ts` |
 
 ```mermaid
 sequenceDiagram

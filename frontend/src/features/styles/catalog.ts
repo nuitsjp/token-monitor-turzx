@@ -41,13 +41,20 @@ async function registerStored(value: ThemeFiles) {
   return { id: prepared.id, name: prepared.name };
 }
 
+// 段階2のモック: 削除を画面の中だけで再現する合成点。段階4で Styles.Delete に置き換える。
+const mockDeleted = new Set<string>();
+
+export async function deleteStyle(id: string): Promise<void> {
+  mockDeleted.add(id);
+}
+
 export async function loadStyleCatalog(): Promise<StyleDefinition[]> {
   const compiled = compiledStyles();
   const stored = (await Styles.List()) ?? [];
   const added: StyleDefinition[] = [];
   for (const style of stored) added.push(await registerStored(style));
   const seen = new Set(compiled.map(style => style.id));
-  return [...compiled, ...added.filter(style => !seen.has(style.id))];
+  return [...compiled, ...added.filter(style => !seen.has(style.id) && !mockDeleted.has(style.id))];
 }
 
 export async function importStyleFolder(): Promise<void> {
